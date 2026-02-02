@@ -209,12 +209,12 @@ button{
     <button id="noBtn">No 💔</button>
   </section>
 
-  <div class="hint">“No” seems a bit shy 😈</div>
+  <div class="hint">(“No” seems a bit shy 😈)</div>
 </div>
 
 <!-- PAGE 2 -->
 <div class="card" id="second">
-  <h1>Ridhuuu, will you be my Valentine?</h1>
+  <h1>Vivek, will you be my Valentine?</h1>
   <img src="photo.jpg" class="photo-pop">
   <div class="yes-pair">
     <button id="yes2">Yes ❤️</button>
@@ -224,7 +224,7 @@ button{
 
 <!-- PAGE 3 -->
 <div class="card" id="final">
-  <h1 class="glitter-text" id="finalHeading">She said yessss ❤️💌💍</h1>
+  <h1 class="glitter-text" id="finalHeading">He said yesss ❤️💌💍</h1>
   <p style="font-size:20px;line-height:1.6">
     To laughter that feels like home 😘,<br>
     to growing together 💑,<br>
@@ -249,17 +249,57 @@ const first=document.getElementById("first");
 const second=document.getElementById("second");
 const final=document.getElementById("final");
 
-zone.addEventListener("pointermove",e=>{
-  const b=noBtn.getBoundingClientRect();
-  const d=Math.hypot(
-    (b.left+b.width/2)-e.clientX,
-    (b.top+b.height/2)-e.clientY
+const yesBtn = document.getElementById("yesBtn");
+
+let yesScale = 1;
+
+/* YES BUTTON GROWS SLOWLY */
+function growYes(){
+  yesScale = Math.min(2.2, yesScale + 0.08);
+  yesBtn.style.transform = `translateY(-50%) scale(${yesScale})`;
+}
+
+/* HELPERS */
+function clamp(n,min,max){
+  return Math.max(min, Math.min(max, n));
+}
+
+/* NO BUTTON RUNS AWAY (SMOOTH, NO GLITCH) */
+function moveNo(px, py){
+  const z = zone.getBoundingClientRect();
+  const b = noBtn.getBoundingClientRect();
+
+  let dx = (b.left + b.width/2) - px;
+  let dy = (b.top  + b.height/2) - py;
+  let mag = Math.hypot(dx,dy) || 1;
+  dx /= mag;
+  dy /= mag;
+
+  let newLeft = (b.left - z.left) + dx * 140;
+  let newTop  = (b.top  - z.top)  + dy * 140;
+
+  newLeft = clamp(newLeft, 0, z.width  - b.width);
+  newTop  = clamp(newTop,  0, z.height - b.height);
+
+  noBtn.style.left = newLeft + "px";
+  noBtn.style.top  = newTop  + "px";
+  noBtn.style.transform = "none";
+
+  growYes();
+}
+
+/* POINTER TRACKING */
+zone.addEventListener("pointermove", e => {
+  const b = noBtn.getBoundingClientRect();
+  const d = Math.hypot(
+    (b.left + b.width/2) - e.clientX,
+    (b.top  + b.height/2) - e.clientY
   );
-  if(d<140){
-    const z=zone.getBoundingClientRect();
-    noBtn.style.left=Math.random()*(z.width-b.width)+"px";
-  }
+  if(d < 150) moveNo(e.clientX, e.clientY);
 });
+
+/* PREVENT NO CLICK */
+noBtn.addEventListener("click", e => e.preventDefault());
 
 document.getElementById("yesBtn").onclick=()=>goNext();
 document.getElementById("yes2").onclick=()=>goFinal();
